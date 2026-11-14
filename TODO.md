@@ -65,3 +65,21 @@
   - Evidencia: `.github/workflows/ci.yml`; el flujo se dispara en push/PR a `main`.
 - [x] Eliminar andamiaje muerto de la plantilla: componentes demo y módulos de servidor sin uso, más assets duplicados.
   - Evidencia: se borraron `hello-wave`, `parallax-scroll-view`, `external-link`, `screen-container`, `collapsible`, `icon-symbol`, hooks de color, `dataApi`, `heartbeat`, `imageGeneration`, `llm`, `voiceTranscription`, `storage`, `react-logo*` e `icon-source.png`; `pnpm check`, `pnpm lint` y `pnpm test` siguen en verde.
+
+## Base de producción en Cloudflare
+- [x] Extraer la lógica del radar y de NASA a un núcleo neutral respecto al entorno (`server/core/`), de forma que Express y Workers compartan una única implementación.
+  - Evidencia: `server/core/{geo,radar-service,nasa-service,cache}.ts`; `server/{radar,nasa}.ts` y `worker/index.ts` son adaptadores finos. Paridad comprobada: Express y Worker devolvieron el mismo resultado real (`count=7` incendios de Portugal) para la misma consulta.
+- [x] Backend en Cloudflare Workers con los mismos endpoints y CORS, sin estado ni D1/R2/KV.
+  - Evidencia: `worker/index.ts` enruta `/api/health`, `/api/radar/{states,health}` y `/api/nasa/{hazards,space-weather,health}`; `wrangler dev` respondió `hasApiKey=true` y 7 incendios reales de EONET, y `space-weather` con `source=nasa-donki`.
+- [x] Caché adaptada a cada entorno: `Map` en Express y Cache API en el Worker.
+  - Evidencia: `worker/cache.ts` (`caches.default`) implementa el mismo `CacheStore` que `MemoryCacheStore`; la segunda llamada idéntica bajó de 1.7 s (frío) a 0.02 s (caché).
+- [x] Configuración y secretos: `wrangler.toml`, `.dev.vars` ignorado por git y plantilla `.dev.vars.example`.
+  - Evidencia: `.dev.vars`, `.env` y `.expo/dev/logs/` están ignorados (`git check-ignore`); `git grep` de la clave NASA en archivos versionados no devuelve nada.
+- [x] Frontend web exportable para Cloudflare Pages.
+  - Evidencia: `npx expo export --platform web --output-dir dist-web` generó 13 rutas estáticas, incluida `/nasa`, con `EXPO_PUBLIC_API_BASE_URL` incrustada en el bundle.
+- [x] CI con verificación del Worker y despliegue condicionado.
+  - Evidencia: `.github/workflows/ci.yml` ejecuta `wrangler deploy --dry-run` en cada push/PR y despliega en `main` solo si existe el secreto `CLOUDFLARE_API_TOKEN`.
+- [x] Pruebas de los servicios compartidos.
+  - Evidencia: `server/core/services.test.ts` añade 14 pruebas (mapeo ADS-B, filtrado por radio, rechazo de muestras vencidas, caché, mapeo EONET, Kp/GNSS y geo); `pnpm test` = 59 pasan, 1 omitida.
+- [ ] Desplegar en Cloudflare (bloqueado: el token de API del historial responde `Invalid API Token`, error 1000).
+  - Evidencia: `curl /user/tokens/verify` con el token recibido devuelve `success:false`; el despliegue solo necesita un token válido con la plantilla «Edit Cloudflare Workers».
