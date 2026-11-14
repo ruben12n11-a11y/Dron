@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Spec Manus — Cloudflare Drone Radar</title>
+<style>
+  body{margin:0;background:#0b0f14;color:#d7e3ee;font:16px/1.6 ui-sans-serif,system-ui,sans-serif}
+  header{position:sticky;top:0;background:#0b0f14ee;border-bottom:1px solid #1e2a36;padding:12px 20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;backdrop-filter:blur(6px)}
+  h1{font-size:15px;margin:0;flex:1;font-weight:600}
+  button{background:#0ea5e9;border:0;color:#04121b;font-weight:700;padding:9px 16px;border-radius:8px;cursor:pointer;font-size:14px}
+  button.ok{background:#22c55e}
+  a{text-decoration:none}
+  pre{white-space:pre-wrap;word-wrap:break-word;max-width:1000px;margin:20px auto;padding:0 20px;font:13px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace}
+</style>
+</head>
+<body>
+<header>
+  <h1>Especificación para Manus AI — Backend Cloudflare (Drone Radar)</h1>
+  <a href="MANUS_CLOUDFLARE_SPEC.md" download><button>Descargar .md</button></a>
+  <button id="c">Copiar todo</button>
+</header>
+<pre id="out">Cargando…</pre>
+<script>
+fetch('MANUS_CLOUDFLARE_SPEC.md').then(r=>r.text()).then(t=>{document.getElementById('out').textContent=t;});
+const b=document.getElementById('c');
+b.onclick=async()=>{const t=document.getElementById('out').textContent;try{await navigator.clipboard.writeText(t);}catch(e){const r=document.createRange();r.selectNodeContents(document.getElementById('out'));const s=getSelection();s.removeAllRanges();s.addRange(r);document.execCommand('copy');}b.textContent='¡Copiado!';b.classList.add('ok');setTimeout(()=>{b.textContent='Copiar todo';b.classList.remove('ok');},1800);};
+</script>
+</body>
+</html>
