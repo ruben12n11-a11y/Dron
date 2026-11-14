@@ -1,0 +1,20 @@
+name = "drone-radar-api"
+main = "worker/index.ts"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# The API is a stateless proxy in front of OpenSky, NASA EONET and NASA DONKI.
+# It stores nothing, so no D1/R2/KV binding is required: snapshots live in the
+# Cloudflare Cache API (see worker/cache.ts).
+workers_dev = true
+
+[observability]
+enabled = true
+
+# Secrets are never committed. Set them once with:
+#   wrangler secret put NASA_API_KEY
+#   wrangler secret put OPENSKY_CLIENT_ID
+#   wrangler secret put OPENSKY_CLIENT_SECRET
+# Non-secret configuration lives in [vars]:
+[vars]
+ALLOWED_ORIGINS = "*"
