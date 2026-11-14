@@ -53,3 +53,15 @@
   - Evidencia: pestaña Alertas mostró 4 alertas «Evento natural cercano» con título, categoría, distancia y rumbo, y el chip de filtro NASA.
 - [x] Typecheck, lint y pruebas en verde tras la integración.
   - Evidencia: `pnpm check` y `pnpm lint` sin errores; `pnpm test` = 45 pasan, 1 omitida (5 archivos), incluida la prueba de etiquetas de severidad Kp.
+
+## Profesionalización del repositorio
+- [x] Versionar el árbol de fuentes real (el repositorio solo contenía `code.zip`), con `.gitignore` que deja de seguir `code.zip` y el espacio de trabajo del agente.
+  - Evidencia: `code.zip` destrackeado y añadido a `.gitignore`; 105 archivos de fuente versionados en la rama `profesionalizacion-repo`.
+- [x] Documentación: `README.md` con arquitectura, flujo de datos, rutas de API, scripts, fuentes y límites honestos; `LICENSE` MIT.
+  - Evidencia: `README.md` y `LICENSE` en la raíz; el README declara que los drones pequeños no emiten ADS-B y que nunca se inventan contactos.
+- [x] Metadatos de `package.json`: nombre `drone-radar`, descripción, licencia, repositorio y `engines: node>=20` (antes `app-template`).
+  - Evidencia: `package.json` actualizado; el lockfile no nombra el paquete, así que sigue en sync (`pnpm install --frozen-lockfile`).
+- [x] CI en GitHub Actions: `pnpm install --frozen-lockfile`, typecheck, lint y pruebas con pnpm 9.12 y Node 20.
+  - Evidencia: `.github/workflows/ci.yml`; el flujo se dispara en push/PR a `main`.
+- [x] Eliminar andamiaje muerto de la plantilla: componentes demo y módulos de servidor sin uso, más assets duplicados.
+  - Evidencia: se borraron `hello-wave`, `parallax-scroll-view`, `external-link`, `screen-container`, `collapsible`, `icon-symbol`, hooks de color, `dataApi`, `heartbeat`, `imageGeneration`, `llm`, `voiceTranscription`, `storage`, `react-logo*` e `icon-source.png`; `pnpm check`, `pnpm lint` y `pnpm test` siguen en verde.
