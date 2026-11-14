@@ -48,6 +48,39 @@ Servidor Express (server/)
   GET /api/health
 ```
 
+### Producción en Cloudflare
+
+El mismo API corre en **Cloudflare Workers** con los endpoints idénticos, y el
+frontend web se sirve como estáticos en **Cloudflare Pages**. La lógica no está
+duplicada: vive en `server/core/` y ambos entornos la consumen a través de
+adaptadores finos.
+
+```
+                      ┌──────────────────────────────┐
+  Expo web (Pages) ──►│  Worker  worker/index.ts     │
+  Expo nativo ───────►│  (router + CORS + JSON)      │
+                      └──────────────┬───────────────┘
+                                     │ usa
+                      ┌──────────────▼───────────────┐
+                      │  Núcleo  server/core/*       │
+                      │  radar-service  nasa-service │
+                      │  geo            cache        │
+                      └──────────────┬───────────────┘
+              ┌──────────────────────┼──────────────────────┐
+              ▼                      ▼                      ▼
+          OpenSky               NASA EONET             NASA DONKI
+
+  Express (server/radar.ts, server/nasa.ts) usa el MISMO núcleo
+  con MemoryCacheStore en lugar de la Cache API.
+```
+
+La única diferencia real entre ambos entornos es la caché:
+
+| Entorno | Implementación de `CacheStore` | Motivo |
+| --- | --- | --- |
+| Express local | `MemoryCacheStore` (`Map`) | Un solo proceso persistente |
+| Cloudflare Worker | `CloudflareCacheStore` (`caches.default`) | Un `Map` no sobrevive entre invocaciones |
+
 ### Flujo de datos
 
 1. `RadarProvider` arranca en `connecting` y consulta únicamente OpenSky.
@@ -112,6 +145,65 @@ EXPO_PUBLIC_API_BASE_URL=http://localhost:3000 pnpm dev:metro --clear
 | `pnpm format` | Prettier |
 | `pnpm build` | Empaqueta el servidor con esbuild |
 | `pnpm start` | Arranca el servidor empaquetado |
+| `pnpm worker:dev` | Worker en local (`wrangler dev`, puerto 8787) |
+| `pnpm worker:deploy` | Despliega el Worker en Cloudflare |
+| `pnpm worker:types` | Genera tipos de bindings de Cloudflare |
+
+## Despliegue en Cloudflare
+
+El backend es un Worker sin estado: no guarda nada y no necesita D1, R2 ni KV.
+Las instantáneas viven en la Cache API de Cloudflare.
+
+### 1. Token de API
+
+Crea un token en el panel de Cloudflare con la plantilla **Edit Cloudflare
+Workers** (permisos `Workers Scripts: Edit` y `Account Settings: Read`).
+Comprueba que es válido antes de desplegar:
+
+```bash
+curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+  https://api.cloudflare.com/client/v4/user/tokens/verify
+```
+
+### 2. Secretos (nunca en el repositorio)
+
+```bash
+pnpm exec wrangler secret put NASA_API_KEY
+pnpm exec wrangler secret put OPENSKY_CLIENT_ID        # opcional
+pnpm exec wrangler secret put OPENSKY_CLIENT_SECRET    # opcional
+```
+
+En local, los secretos van en `.dev.vars` (ya ignorado por git):
+
+```
+NASA_API_KEY=...
+```
+
+### 3. Desplegar
+
+```bash
+pnpm worker:deploy
+```
+
+La API queda en `https://drone-radar-api.<tu-subdominio>.workers.dev`.
+
+### 4. Frontend web en Pages
+
+```bash
+EXPO_PUBLIC_API_BASE_URL="https://drone-radar-api.<tu-subdominio>.workers.dev" \
+  npx expo export --platform web --output-dir dist-web
+```
+
+Sube `dist-web/` como proyecto de Pages (o conecta el repositorio y usa ese
+comando como build). La variable `EXPO_PUBLIC_API_BASE_URL` se incrusta en el
+bundle en tiempo de compilación, así que debe estar definida al exportar.
+
+### 5. Integración continua
+
+`.github/workflows/ci.yml` verifica tipos, lint, pruebas y un `wrangler deploy
+--dry-run` en cada push y pull request. El job de despliegue solo se ejecuta en
+`main` y **solo si existe el secreto `CLOUDFLARE_API_TOKEN`**; sin él, se omite
+y la pipeline sigue verde.
 
 ## Estructura del proyecto
 
@@ -123,7 +215,10 @@ EXPO_PUBLIC_API_BASE_URL=http://localhost:3000 pnpm dev:metro --clear
 - `lib/nasa/`: cliente, parseo y vista de EONET/DONKI.
 - `components/radar/RadarScope.tsx`: SVG del radar, rosa, blips y eventos.
 - `components/hud.tsx`: paneles, chips, métricas y botones del HUD.
-- `server/`: proxy Express (OpenSky, NASA) con caché y validación.
+- `server/core/`: lógica compartida (radar, NASA, geo, caché); no depende de Express ni de Cloudflare.
+- `server/`: adaptador Express (OpenSky, NASA) sobre `server/core/`.
+- `worker/`: adaptador Cloudflare Workers (`index.ts` enrutador, `cache.ts` Cache API).
+- `wrangler.toml`: configuración del Worker.
 - `tests/` y `lib/**/*.test.ts`: pruebas unitarias.
 
 ## Fuentes de datos

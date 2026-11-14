@@ -1,0 +1,10 @@
+# Copia este archivo a .dev.vars para el desarrollo local del Worker.
+# .dev.vars está ignorado por git y nunca debe subirse.
+#
+#   cp .dev.vars.example .dev.vars
+#
+# NASA_API_KEY es necesaria para el clima espacial (DONKI).
+# Las credenciales de OpenSky son opcionales (suben la cuota anónima).
+NASA_API_KEY=
+OPENSKY_CLIENT_ID=
+OPENSKY_CLIENT_SECRET=

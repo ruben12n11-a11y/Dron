@@ -36,3 +36,39 @@ jobs:
 
       - name: Pruebas
         run: pnpm test
+
+      - name: Verificar el Worker (dry-run)
+        run: pnpm exec wrangler deploy --dry-run --outdir dist-worker
+
+  deploy:
+    name: Desplegar API (Cloudflare Workers)
+    needs: verify
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    env:
+      # Secrets cannot be read directly in an `if`, so it is surfaced as a
+      # job-level environment variable and the step checks that instead.
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Instalar pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.12.0
+
+      - name: Instalar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Instalar dependencias
+        run: pnpm install --frozen-lockfile
+
+      # Skipped when the repository secret is absent, so the pipeline stays
+      # green before Cloudflare is connected.
+      - name: Desplegar
+        if: env.CLOUDFLARE_API_TOKEN != ''
+        run: pnpm exec wrangler deploy

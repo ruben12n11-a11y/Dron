@@ -8,6 +8,8 @@ node_modules/
 # Expo
 .expo/
 dist/
+dist-web/
+dist-worker/
 web-build/
 expo-env.d.ts
 
@@ -74,3 +76,7 @@ Thumbs.db
 
 # Source archive used during scaffolding; the real tree is tracked instead.
 code.zip
+
+# Cloudflare Worker local secrets (contains API keys)
+.dev.vars
+.wrangler/
