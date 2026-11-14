@@ -100,7 +100,7 @@ La única diferencia real entre ambos entornos es la caché:
 
 ### Requisitos previos
 
-- **Node.js 20+** y **pnpm**.
+- **Node.js 22+** y **pnpm** (wrangler 4 exige Node 22.12 o superior).
 - No se necesita ninguna clave para funcionar en modo básico: OpenSky tiene
   acceso anónimo (cuota reducida) y EONET es de dominio público.
 

@@ -59,7 +59,7 @@
   - Evidencia: `code.zip` destrackeado y añadido a `.gitignore`; 105 archivos de fuente versionados en la rama `profesionalizacion-repo`.
 - [x] Documentación: `README.md` con arquitectura, flujo de datos, rutas de API, scripts, fuentes y límites honestos; `LICENSE` MIT.
   - Evidencia: `README.md` y `LICENSE` en la raíz; el README declara que los drones pequeños no emiten ADS-B y que nunca se inventan contactos.
-- [x] Metadatos de `package.json`: nombre `drone-radar`, descripción, licencia, repositorio y `engines: node>=20` (antes `app-template`).
+- [x] Metadatos de `package.json`: nombre `drone-radar`, descripción, licencia, repositorio y `engines: node>=22` (antes `app-template`).
   - Evidencia: `package.json` actualizado; el lockfile no nombra el paquete, así que sigue en sync (`pnpm install --frozen-lockfile`).
 - [x] CI en GitHub Actions: `pnpm install --frozen-lockfile`, typecheck, lint y pruebas con pnpm 9.12 y Node 20.
   - Evidencia: `.github/workflows/ci.yml`; el flujo se dispara en push/PR a `main`.

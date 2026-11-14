@@ -1839,7 +1839,7 @@ La única diferencia real entre ambos entornos es la caché:
 
 ### Requisitos previos
 
-- **Node.js 20+** y **pnpm**.
+- **Node.js 22+** y **pnpm** (wrangler 4 exige Node 22.12 o superior).
 - No se necesita ninguna clave para funcionar en modo básico: OpenSky tiene
   acceso anónimo (cuota reducida) y EONET es de dominio público.
 
@@ -2089,7 +2089,7 @@ code.zip
   },
   "main": "expo-router/entry",
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "scripts": {
     "dev": "concurrently -k \"pnpm dev:server\" \"pnpm dev:metro\"",
@@ -2218,7 +2218,7 @@ jobs:
       - name: Instalar Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: pnpm
 
       - name: Instalar dependencias
@@ -2257,7 +2257,7 @@ jobs:
       - name: Instalar Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: pnpm
 
       - name: Instalar dependencias
